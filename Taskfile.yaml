@@ -1,0 +1,24 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  PROJECT: go-builder
+  USERNAME: liujianping
+  VERSION: $(git describe --tags --abbrev=0)
+
+tasks:
+  build:    
+    - podman build . -t {{ .USERNAME }}/{{.PROJECT}}:latest    
+
+  image:
+    - task: build
+    - podman login -u {{ .USERNAME }} -p $(pass docker.io/{{ .USERNAME }}) docker.io
+    - podman tag {{ .USERNAME }}/{{.PROJECT}}:latest {{ .USERNAME }}/{{.PROJECT}}:{{ .VERSION }}
+    - podman push {{ .USERNAME }}/{{.PROJECT}}:latest 
+    - podman push {{ .USERNAME }}/{{.PROJECT}}:{{ .VERSION }} 
+ 
+  default:
+    cmds:
+      - task: image
+    silent: true
